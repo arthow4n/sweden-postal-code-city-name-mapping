@@ -1,2 +1,3 @@
-#!/usr/bin/sh
-deno run --allow-net --allow-read=./postalcodes.json --allow-write=./postalcodes.json update.ts
+#!/usr/bin/env bash
+cd "$(dirname $0)"
+deno run --allow-net --allow-read=./fetchStates.json,./postalcodes.json --allow-write=./fetchStates.json,./postalcodes.json update.ts
