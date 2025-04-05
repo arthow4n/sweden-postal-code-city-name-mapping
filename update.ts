@@ -1,6 +1,5 @@
 type PostalCode = {
-  countryCode: string;
-  postalCity: string;
+  city: string;
   postalCode: string;
 };
 
@@ -17,24 +16,22 @@ const fetchPostNumbers = async (prefix: string) => {
 };
 
 const postalCodeCityNameMapping: Record<string, string> = {};
-const range = Array(1000)
+const range = Array(90000)
   .fill(0)
-  .map((v, i) => i + 1)
-  .filter((x) => x >= 100 && x <= 999)
-  .map((x) => x.toString().padStart(3, "0"));
+  .map((v, i) => (i + 10000).toString());
 
-for (const prefix of range) {
+for (const postalCode of range) {
   console.log(
-    `${new Date().toISOString()} Fetching for ${prefix}/${range.at(-1)}`
+    `${new Date().toISOString()} Fetching for ${postalCode}/${range.length}`
   );
   await new Promise<void>((resolve) => {
     setTimeout(() => {
       resolve();
     }, 3000);
   });
-  const codes = await fetchPostNumbers(prefix);
+  const codes = await fetchPostNumbers(postalCode);
   for (const code of codes) {
-    postalCodeCityNameMapping[code.postalCode] = code.postalCity;
+    postalCodeCityNameMapping[code.postalCode] = code.city;
   }
 }
 
