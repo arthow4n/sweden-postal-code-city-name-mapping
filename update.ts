@@ -80,7 +80,7 @@ for (const fetchState of fetchStates) {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
-      }, 3000);
+      }, 2100);
     });
 
     try {
