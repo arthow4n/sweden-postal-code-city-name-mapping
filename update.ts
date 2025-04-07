@@ -82,11 +82,17 @@ for (const fetchState of fetchStates) {
         resolve();
       }, 3000);
     });
-    const codes = await fetchPostNumbers(fetchState.postalCode);
-    fetchState.city =
-      codes.find((code) => code.postalCode === fetchState.postalCode)?.city ??
-      null;
-    fetchState.fetchedAt = new Date();
+
+    try {
+      const codes = await fetchPostNumbers(fetchState.postalCode);
+      fetchState.city =
+        codes.find((code) => code.postalCode === fetchState.postalCode)?.city ??
+        null;
+      fetchState.fetchedAt = new Date();
+    } catch {
+      // Commit the current progress if the API seems to be down for any reason.
+      hasReachedDeadline = true;
+    }
   }
 
   // Always reconstruct postalcodes.json even with outdated data.
