@@ -1,0 +1,31 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 32 5,11,17,23 * * *
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Generate the update
+        run: bash run.sh
+      # Push empty commit even if there aren't changes, this is to keep the GitHub Action alive without being deactivated due to inactivity.
+      - name: Commit and push the update
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch
+          if [[ "$(git status --porcelain)" ]]; then
+            git commit -am "update"
+            git rebase origin/master
+            git push
+          else
+            git commit --amend --no-edit --allow-empty
+            git push --force-with-lease
+          fi
