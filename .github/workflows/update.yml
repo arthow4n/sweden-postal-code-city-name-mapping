@@ -15,9 +15,9 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v4
         with:
-          deno-version: v2.x
+          node-version: lts/*
       - name: Generate the update
         run: bash run.sh
       # Push empty commit even if there aren't changes, this is to keep the GitHub Action alive without being deactivated due to inactivity.

@@ -1,3 +1,5 @@
+import { readFile, writeFile } from "node:fs/promises";
+
 type PostalCode = {
   city: string;
   postalCode: string;
@@ -15,7 +17,7 @@ const fetchStates = await(
   > => {
     try {
       return JSON.parse(
-        await Deno.readTextFile("./fetchStates.json"),
+        await readFile("./fetchStates.json", "utf-8"),
         (key, value) => (key === "fetchedAt" ? new Date(value) : value)
       );
     } catch {
@@ -34,14 +36,16 @@ const fetchStates = await(
 )();
 
 const save = async () => {
-  await Deno.writeTextFile(
+  await writeFile(
     "./fetchStates.json",
-    JSON.stringify(fetchStates, null, 2)
+    JSON.stringify(fetchStates, null, 2),
+    "utf-8"
   );
 
-  await Deno.writeTextFile(
+  await writeFile(
     "./postalcodes.json",
-    JSON.stringify(result, null, 2)
+    JSON.stringify(result, null, 2),
+    "utf-8"
   );
 };
 
