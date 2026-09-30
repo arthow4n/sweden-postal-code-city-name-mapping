@@ -8,24 +8,53 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.ref }}
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Generate the update
         run: bash run.sh
       # Push empty commit even if there aren't changes, this is to keep the GitHub Action alive without being deactivated due to inactivity.
+      # Keep the latest commit as a touch commit (which doesn't touch postalcodes.json) so real changes remain in history.
       - name: Commit and push the update
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git fetch
-          if [[ "$(git status --porcelain)" ]]; then
-            git commit -am "update"
-            git rebase origin/master
-            git push
+
+          is_touch_commit() {
+            if [ "$(git log -1 --format=%s)" != "touch" ]; then
+              return 1
+            fi
+            if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+              return 1
+            fi
+            if git diff-tree --no-commit-id --name-only -r HEAD | grep -q '^postalcodes\.json$'; then
+              return 1
+            fi
+            return 0
+          }
+
+          if [ -n "$(git status --porcelain)" ]; then
+            if is_touch_commit; then
+              git reset HEAD~1
+            fi
+            git add -A
+            git commit -m "update"
+            git commit --allow-empty -m "touch"
+            git push --force-with-lease origin master
           else
-            git commit --amend --no-edit --allow-empty
-            git push --force-with-lease
+            if is_touch_commit; then
+              git commit --amend --no-edit --date=now --allow-empty
+              git push --force-with-lease origin master
+            else
+              git commit --allow-empty -m "touch"
+              git push origin master
+            fi
           fi
+
